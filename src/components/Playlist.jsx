@@ -45,7 +45,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
 
   useEffect(() => {
     handleSpotifyCallback();
-    // eslint-disable-next-line
   }, []);
 
   const initiateSpotifyLogin = () => {
@@ -64,7 +63,47 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
 
     try {
-      // ... (the rest of your savePlaylistToSpotify code)
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      };
+      const playlistData = {
+        name: name,
+        description: "Playlist created using Jammming",
+        public: false,
+      };
+
+      const createPlaylistResponse = await fetch(
+        "https://api.spotify.com/v1/me/playlists",
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(playlistData),
+        }
+      );
+
+      if (createPlaylistResponse.ok) {
+        const { id } = await createPlaylistResponse.json();
+        const uris = playlist.tracks.map((track) => track.uri);
+
+        const addTracksResponse = await fetch(
+          `https://api.spotify.com/v1/playlists/${id}/tracks`,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ uris }),
+          }
+        );
+
+        if (addTracksResponse.ok) {
+          alert("Playlist saved to Spotify!");
+          onEdit([]);
+        } else {
+          setError("Error adding tracks to the playlist.");
+        }
+      } else {
+        setError("Error creating the playlist.");
+      }
     } catch (error) {
       setError(`Error saving playlist to Spotify: ${error.message}`);
     }
@@ -76,7 +115,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
       const refreshToken = localStorage.getItem("spotify_refresh_token");
 
       if (refreshToken) {
-        const response = await fetch("YOUR_REFRESH_TOKEN_URL", {
+        const response = await fetch("https://accounts.spotify.com/api/token", {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -90,7 +129,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         if (response.ok) {
           const data = await response.json();
           setAccessToken(data.access_token);
-          localStorage.setItem("spotify_refresh_token", data.refresh_token);
           const expiresIn = new URLSearchParams(
             window.location.hash.substring(1)
           ).get("expires_in");
@@ -98,9 +136,9 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
             const expirationTime = Date.now() + parseInt(expiresIn, 10) * 1000;
             localStorage.setItem("spotify_token_expiration", expirationTime);
           }
+        } else {
+          initiateSpotifyLogin();
         }
-      } else {
-        initiateSpotifyLogin();
       }
     } catch (error) {
       console.error("Error refreshing access token:", error);
@@ -116,6 +154,16 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
       }
     }
   }, [accessToken]);
+
+  const playTrackSample = (track) => {
+    if (track.preview_url) {
+      const audio = new Audio(track.preview_url);
+      audio.play();
+    } else {
+      alert("No preview available for this track.");
+      console.log("No preview available for this track.");
+    }
+  };
 
   return (
     <div className="flex-1 justify-center mt-[50px] shadow-lg lg:w-90 lg:mb-8">
@@ -164,16 +212,16 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
                 height={30}
                 width={30}
               />
+              <button
+                className="font-bold text-white hover-text-[#6c41e9] bg-[#6c41e9] hover-bg-[lightgrey] py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
+                onClick={savePlaylistToSpotify}
+              >
+                SAVE PLAYLIST
+              </button>
             </div>
           ) : (
             <p>Loading user data...</p>
           )}
-          <button
-            className="font-bold text-white hover-text-[#6c41e9] bg-[#6c41e9] hover-bg-[lightgrey] py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
-            onClick={savePlaylistToSpotify}
-          >
-            SAVE PLAYLIST
-          </button>
         </div>
       ) : (
         <button
