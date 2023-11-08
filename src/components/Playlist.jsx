@@ -6,6 +6,23 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
 
+  const handleSpotifyCallback = () => {
+    const token = new URLSearchParams(window.location.hash.substring(1)).get(
+      "access_token"
+    );
+    if (token) {
+      setAccessToken(token);
+      const expiresIn = new URLSearchParams(
+        window.location.hash.substring(1)
+      ).get("expires_in");
+      if (expiresIn) {
+        const expirationTime = Date.now() + parseInt(expiresIn, 10) * 1000;
+        localStorage.setItem("spotify_token_expiration", expirationTime);
+      }
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  };
+
   const fetchUserData = async () => {
     try {
       const response = await fetch("https://api.spotify.com/v1/me", {
@@ -25,27 +42,55 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
   };
 
-  const handleSpotifyCallback = () => {
-    const token = new URLSearchParams(window.location.hash.substring(1)).get(
-      "access_token"
-    );
-    if (token) {
-      setAccessToken(token);
-      const expiresIn = new URLSearchParams(
-        window.location.hash.substring(1)
-      ).get("expires_in");
-      if (expiresIn) {
-        const expirationTime = Date.now() + parseInt(expiresIn, 10) * 1000;
-        localStorage.setItem("spotify_token_expiration", expirationTime);
+  // Function to refresh the access token when it expires
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem("spotify_refresh_token");
+
+      if (refreshToken) {
+        const response = await fetch("https://accounts.spotify.com/api/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setAccessToken(data.access_token);
+          localStorage.setItem("spotify_refresh_token", data.refresh_token);
+          const expiresIn = new URLSearchParams(
+            window.location.hash.substring(1)
+          ).get("expires_in");
+          if (expiresIn) {
+            const expirationTime = Date.now() + parseInt(expiresIn, 10) * 1000;
+            localStorage.setItem("spotify_token_expiration", expirationTime);
+          }
+        }
+      } else {
+        initiateSpotifyLogin();
       }
-      window.history.replaceState(null, "", window.location.pathname);
-      fetchUserData();
+    } catch (error) {
+      console.error("Error refreshing access token:", error);
     }
   };
 
   useEffect(() => {
+    // Handle Spotify callback and fetch user data if the access token exists
     handleSpotifyCallback();
-  }, []);
+
+    if (accessToken) {
+      fetchUserData();
+      const expirationTime = localStorage.getItem("spotify_token_expiration");
+      if (expirationTime && Date.now() > parseInt(expirationTime, 10)) {
+        refreshAccessToken();
+      }
+    }
+  }, [accessToken]);
 
   const initiateSpotifyLogin = () => {
     const { clientId, redirectUri, scope } = authConfig;
@@ -108,52 +153,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
       setError(`Error saving playlist to Spotify: ${error.message}`);
     }
   };
-
-  // Function to refresh the access token when it expires
-  const refreshAccessToken = async () => {
-    try {
-      const refreshToken = localStorage.getItem("spotify_refresh_token");
-
-      if (refreshToken) {
-        const response = await fetch("https://accounts.spotify.com/api/token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            grant_type: "refresh_token",
-            refresh_token: refreshToken,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setAccessToken(data.access_token);
-          const expiresIn = new URLSearchParams(
-            window.location.hash.substring(1)
-          ).get("expires_in");
-          if (expiresIn) {
-            const expirationTime = Date.now() + parseInt(expiresIn, 10) * 1000;
-            localStorage.setItem("spotify_token_expiration", expirationTime);
-          }
-        } else {
-          initiateSpotifyLogin();
-        }
-      }
-    } catch (error) {
-      console.error("Error refreshing access token:", error);
-    }
-  };
-
-  useEffect(() => {
-    // If the access token exists and is about to expire, refresh it
-    if (accessToken) {
-      const expirationTime = localStorage.getItem("spotify_token_expiration");
-      if (expirationTime && Date.now() > parseInt(expirationTime, 10)) {
-        refreshAccessToken();
-      }
-    }
-  }, [accessToken]);
 
   const playTrackSample = (track) => {
     if (track.preview_url) {
@@ -225,10 +224,10 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         </div>
       ) : (
         <button
-          className="font-bold text-gray-400 hover-text-white bg-purple-200 hover-bg-[#6c41e9] uppercase py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
+          className="font-bold text-gray-400 hover:text-white bg-purple-200 hover:bg-[#6c41e9] uppercase py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
           onClick={initiateSpotifyLogin}
         >
-          Login with Spotify
+          Login to Spotify
         </button>
       )}
       {error && <p>{error}</p>}
