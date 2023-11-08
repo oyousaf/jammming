@@ -90,6 +90,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         refreshAccessToken();
       }
     }
+    // eslint-disable-next-line
   }, [accessToken]);
 
   const initiateSpotifyLogin = () => {
