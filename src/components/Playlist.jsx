@@ -203,22 +203,24 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
       {accessToken ? (
         <div className="mt-10 text-green-700">
           {user ? (
-            <div className="flex items-center justify-center">
-              <p className="mr-2">Logged in as {user.display_name}</p>
-              <img
-                className="rounded-full"
-                src={user.images[0].url}
-                alt="user"
-                height={30}
-                width={30}
-              />
+            <>
+              <div className="flex items-center justify-center">
+                <p className="mr-2">Logged in as {user.display_name}</p>
+                <img
+                  className="rounded-full"
+                  src={user.images[0].url}
+                  alt="user"
+                  height={30}
+                  width={30}
+                />
+              </div>
               <button
-                className="font-bold text-white hover-text-[#6c41e9] bg-[#6c41e9] hover-bg-[lightgrey] py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
+                className="font-bold text-white hover:text-[#6c41e9] bg-[#6c41e9] hover:bg-[lightgrey] py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
                 onClick={savePlaylistToSpotify}
               >
                 SAVE PLAYLIST
               </button>
-            </div>
+            </>
           ) : (
             <p>Loading user data...</p>
           )}
