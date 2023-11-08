@@ -6,6 +6,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
 
+  // Grabbing the access token from the URL
   const handleSpotifyCallback = () => {
     const token = new URLSearchParams(window.location.hash.substring(1)).get(
       "access_token"
