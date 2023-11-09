@@ -6,6 +6,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   const [error, setError] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
 
   // Grabbing the access token from the URL
   const handleSpotifyCallback = () => {
@@ -167,6 +168,17 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
   };
 
+  // Function to handle the selection of a playlist from Playlists component
+  const handleSelectPlaylist = (selectedPlaylist) => {
+    console.log("Selected Playlist in Playlist.jsx:", selectedPlaylist);
+    setSelectedPlaylist(selectedPlaylist);
+  };
+
+  // Function to render playlist tracks or the selectedPlaylist
+  const tracksToDisplay = selectedPlaylist
+    ? selectedPlaylist.tracks || []
+    : playlist.tracks || [];
+
   return (
     <div className="flex-1 justify-center mt-[50px] shadow-lg lg:w-90 lg:mb-8">
       <input
@@ -179,7 +191,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         onBlur={onSave}
       />
       <ul>
-        {playlist.tracks.map((track) => (
+        {tracksToDisplay.map((track) => (
           <div
             className="flex justify-center h-7 text-[#003636] text-[1rem] border-b border-gray-300"
             key={track.id}
@@ -222,7 +234,11 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
               >
                 SAVE PLAYLIST
               </button>
-              <Playlists accessToken={accessToken} />
+              <Playlists
+                accessToken={accessToken}
+                playlist={playlist}
+                onSelectPlaylist={handleSelectPlaylist}
+              />
             </>
           ) : (
             <p>Loading user data...</p>

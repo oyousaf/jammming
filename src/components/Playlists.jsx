@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PlaylistsItem from "./PlaylistsItem";
 
-const Playlists = ({ accessToken }) => {
+const Playlists = ({ accessToken, onSelectPlaylist }) => {
   const [playlists, setPlaylists] = useState([]);
+  // eslint-disable-next-line
+  const [selectedPlaylist, setselectedPlaylist] = useState(null);
 
   const getCurrentUserId = useCallback(async () => {
     if (localStorage.getItem("spotify_user_id")) {
@@ -49,7 +51,48 @@ const Playlists = ({ accessToken }) => {
 
   useEffect(() => {
     getUserPlaylists();
+    console.log("Playlists updated:", playlists);
+    // eslint-disable-next-line
   }, [getUserPlaylists]);
+
+  const getPlaylist = async (playlistId) => {
+    try {
+      const userId = await getCurrentUserId();
+      const response = await fetch(
+        `https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const playlistData = await response.json();
+        return playlistData.items.map((track) => ({
+          id: track.track.id,
+          name: track.track.name,
+          artist: track.track.artists[0].name,
+        }));
+      } else {
+        console.error("Error fetching playlist tracks:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching playlist tracks", error);
+    }
+  };
+
+  const selectPlaylist = async (playlistId) => {
+    const tracks = await getPlaylist(playlistId);
+    const selectedPlaylist = {
+      id: playlistId,
+      tracks: tracks,
+    };
+    setselectedPlaylist(selectedPlaylist);
+    onSelectPlaylist(selectedPlaylist);
+    console.log("Selected Playlist:", selectedPlaylist);
+    console.log("typeof onSelectPlaylist:", typeof onSelectPlaylist);
+  };
 
   return (
     <div className="container mx-auto my-8 p-8 bg-gray-300 shadow-md rounded-md">
@@ -59,6 +102,8 @@ const Playlists = ({ accessToken }) => {
           key={playlist.playlistId}
           playlistId={playlist.playlistId}
           name={playlist.name}
+          selectPlaylist={selectPlaylist}
+          onSelectPlaylist={onSelectPlaylist}
         />
       ))}
     </div>
