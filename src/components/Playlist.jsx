@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { authConfig } from "../constants/authConfig";
+import Playlists from "./Playlists";
 
 const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   const [error, setError] = useState(null);
@@ -221,6 +222,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
               >
                 SAVE PLAYLIST
               </button>
+              <Playlists accessToken={accessToken} />
             </>
           ) : (
             <p>Loading user data...</p>
