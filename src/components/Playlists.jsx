@@ -3,8 +3,8 @@ import PlaylistsItem from "./PlaylistsItem";
 
 const Playlists = ({ accessToken, onSelectPlaylist }) => {
   const [playlists, setPlaylists] = useState([]);
-  // eslint-disable-next-line
-  const [selectedPlaylist, setselectedPlaylist] = useState(null);
+
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
 
   const getCurrentUserId = useCallback(async () => {
     if (localStorage.getItem("spotify_user_id")) {
@@ -88,7 +88,7 @@ const Playlists = ({ accessToken, onSelectPlaylist }) => {
       id: playlistId,
       tracks: tracks,
     };
-    setselectedPlaylist(selectedPlaylist);
+    setSelectedPlaylist(selectedPlaylist);
     onSelectPlaylist(selectedPlaylist);
     console.log("Selected Playlist:", selectedPlaylist);
     console.log("typeof onSelectPlaylist:", typeof onSelectPlaylist);
