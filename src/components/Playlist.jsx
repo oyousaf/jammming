@@ -6,6 +6,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   const [error, setError] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
 
   // Grabbing the access token from the URL
@@ -93,6 +94,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         refreshAccessToken();
       }
     }
+    setLoading(false);
     // eslint-disable-next-line
   }, [accessToken]);
 
@@ -190,30 +192,36 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         }}
         onBlur={onSave}
       />
-      <ul>
-        {tracksToDisplay.map((track) => (
-          <div
-            className="flex justify-center h-7 text-[#003636] text-[1rem] border-b border-gray-300"
-            key={track.id}
-          >
-            <li>
-              {track.name} - {track.artist}
-            </li>
-            <button
-              className="text-teal-500 hover:text-teal-600 font-bold pl-2"
-              onClick={() => playTrackSample(track)}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul>
+          {tracksToDisplay.map((track) => (
+            <div
+              className="flex justify-center h-7 text-[#003636] text-[1rem] border-b border-gray-300"
+              key={track.id}
             >
-              ▷
-            </button>
-            <button
-              className="text-red-600 hover:text-red-500 font-bold pl-2 flex-end"
-              onClick={() => onRemove(track)}
-            >
-              x
-            </button>
-          </div>
-        ))}
-      </ul>
+              <li>
+                {track.name} - {track.artist}
+              </li>
+              <button
+                className="text-teal-500 hover:text-teal-600 font-bold pl-2"
+                onClick={() => playTrackSample(track)}
+                aria-label="Play track sample"
+              >
+                ▷
+              </button>
+              <button
+                className="text-red-600 hover:text-red-500 font-bold pl-2 flex-end"
+                onClick={() => onRemove(track)}
+                aria-label="Remove track"
+              >
+                x
+              </button>
+            </div>
+          ))}
+        </ul>
+      )}
       {accessToken ? (
         <div className="mt-10 text-green-700">
           {user ? (
@@ -223,7 +231,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
                 <img
                   className="rounded-full"
                   src={user.images[0].url}
-                  alt="user"
+                  alt="User profile"
                   height={30}
                   width={30}
                 />
@@ -252,7 +260,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
           Login to Spotify
         </button>
       )}
-      {error && <p>{error}</p>}
+      {error && <p className="text-red-600">{error}</p>}
     </div>
   );
 };
