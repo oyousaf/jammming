@@ -229,7 +229,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     <>
       {selectedPlaylist?.tracks
         ? selectedPlaylist.tracks.map(renderTrack)
-        : playlist.tracks.map(renderTrack)}
+        : playlist?.tracks?.map(renderTrack)}
       <div className="mt-10 text-green-700">
         {user ? (
           <>
