@@ -272,6 +272,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   return (
     <div className="flex-1 justify-center mt-[50px] shadow-lg lg:w-90 lg:mb-8">
       {renderPlaylistHeader()}
+      {error && <p className="text-red-600">{error}</p>}
       <ul>
         {!loading
           ? accessToken
@@ -279,7 +280,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
             : renderLoginButton()
           : null}
       </ul>
-      {error && <p className="text-red-600">{error}</p>}
     </div>
   );
 };
