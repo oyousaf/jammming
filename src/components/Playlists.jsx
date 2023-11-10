@@ -72,7 +72,6 @@ const Playlists = ({ accessToken, onSelectPlaylist }) => {
       const tracks = await getPlaylist(playlistId);
       const selectedPlaylist = { id: playlistId, tracks };
       onSelectPlaylist(selectedPlaylist);
-      console.log("Selected Playlist:", selectedPlaylist);
     } catch (error) {
       console.error("Error selecting playlist:", error);
     }
