@@ -10,7 +10,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   const [error, setError] = useState(null);
   const [playlistId, setPlaylistId] = useState(null);
 
-  // Spotify callback handling
   const handleSpotifyCallback = () => {
     const token = new URLSearchParams(window.location.hash.substring(1)).get(
       "access_token"
@@ -28,18 +27,14 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
   };
 
-  // Fetch user data from Spotify API
   const fetchUserData = async () => {
     try {
       const response = await fetch("https://api.spotify.com/v1/me", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
 
       if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
+        setUser(await response.json());
       } else {
         console.error("Error fetching user data:", response.status);
       }
@@ -48,7 +43,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
   };
 
-  // Refresh Spotify access token
   const refreshAccessToken = async () => {
     try {
       const refreshToken = localStorage.getItem("spotify_refresh_token");
@@ -56,9 +50,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
       if (refreshToken) {
         const response = await fetch("https://accounts.spotify.com/api/token", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             grant_type: "refresh_token",
             refresh_token: refreshToken,
@@ -85,7 +77,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
   };
 
-  // useEffect to handle Spotify callback, fetch user data, and refresh access token
   useEffect(() => {
     handleSpotifyCallback();
 
@@ -100,13 +91,11 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     // eslint-disable-next-line
   }, [accessToken]);
 
-  // Initiate Spotify login
   const initiateSpotifyLogin = () => {
     const { clientId, redirectUri, scope } = authConfig;
     window.location.href = `${authConfig.authorizationUrl}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=token`;
   };
 
-  // Function to save playlist to Spotify
   const savePlaylistToSpotify = async () => {
     if (!accessToken || !playlist.tracks.length) {
       setError("Playlist cannot be empty! Try adding some tracks.");
@@ -119,7 +108,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         "Content-Type": "application/json",
       };
       const playlistData = {
-        name: name,
+        name,
         description: "Playlist created using Jammming",
         public: false,
       };
@@ -127,11 +116,7 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
       if (playlistId) {
         const updatePlaylistResponse = await fetch(
           `https://api.spotify.com/v1/users/${user.id}/playlists/${playlistId}`,
-          {
-            method: "PUT",
-            headers,
-            body: JSON.stringify(playlistData),
-          }
+          { method: "PUT", headers, body: JSON.stringify(playlistData) }
         );
         if (!updatePlaylistResponse.ok) {
           setError("Error updating the playlist.");
@@ -179,7 +164,6 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
   };
 
-  // Function to play a sample of the track
   const playTrackSample = (track) => {
     if (track.preview_url) {
       const audio = new Audio(track.preview_url);
@@ -190,102 +174,113 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     }
   };
 
-  // Function to handle the selection of a playlist
   const handleSelectPlaylist = (selectedPlaylist) => {
     console.log("Selected Playlist in Playlist.jsx:", selectedPlaylist);
     setSelectedPlaylist(selectedPlaylist);
   };
 
-  // Determine which tracks to display based on the selected playlist or the main playlist
-  const tracksToDisplay = selectedPlaylist
-    ? selectedPlaylist.tracks || []
-    : playlist.tracks || [];
-
-  // Format track duration
   const formatDuration = (duration_ms) => {
+    console.log("Duration received:", duration_ms);
+    if (typeof duration_ms !== "number" || isNaN(duration_ms)) {
+      return "Not Available";
+    }
     const minutes = Math.floor(duration_ms / 60000);
     const seconds = ((duration_ms % 60000) / 1000).toFixed(0);
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
+  const renderPlaylistHeader = () => (
+    <input
+      type="text"
+      className="w-[287px] bg-[#003636] text-white p-1 border-[3px] rounded mb-4 text-center"
+      value={name}
+      onChange={(e) => onEdit(e.target.value)}
+      onBlur={onSave}
+    />
+  );
+
+  const renderTrack = (track) => (
+    <div
+      key={track.id}
+      className="flex justify-center h-7 text-[#003636] text-[1rem] border-b border-gray-300"
+    >
+      <li>
+        {track.name} - {track.artist}
+      </li>
+      <span className="ml-2 text-gray-500">
+        {formatDuration(track.duration_ms)}
+      </span>
+      <button
+        className="text-teal-500 hover:text-teal-600 font-bold pl-2"
+        onClick={() => playTrackSample(track)}
+      >
+        ▷
+      </button>
+      <button
+        className="text-red-600 hover:text-red-500 font-bold pl-2 flex-end"
+        onClick={() => onRemove(track)}
+      >
+        x
+      </button>
+    </div>
+  );
+
+  const renderPlaylist = () => (
+    <>
+      {selectedPlaylist?.tracks
+        ? selectedPlaylist.tracks.map(renderTrack)
+        : playlist.tracks.map(renderTrack)}
+      <div className="mt-10 text-green-700">
+        {user ? (
+          <>
+            <div className="flex items-center justify-center">
+              <p className="mr-2">Logged in as {user.display_name}</p>
+              <img
+                className="rounded-full"
+                src={user.images[0]?.url}
+                alt="User profile"
+                height={30}
+                width={30}
+              />
+            </div>
+            <button
+              className="font-bold text-white hover:text-[#6c41e9] bg-[#6c41e9] hover:bg-[lightgrey] py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
+              onClick={savePlaylistToSpotify}
+            >
+              SAVE PLAYLIST
+            </button>
+            <Playlists
+              accessToken={accessToken}
+              playlist={playlist}
+              onSelectPlaylist={handleSelectPlaylist}
+            />
+          </>
+        ) : (
+          <p>Loading user data...</p>
+        )}
+      </div>
+    </>
+  );
+
+  const renderLoginButton = () => (
+    <button
+      className="font-bold text-gray-400 hover:text-white bg-purple-200 hover:bg-[#6c41e9] uppercase py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
+      onClick={initiateSpotifyLogin}
+    >
+      Login to Spotify
+    </button>
+  );
+
   return (
     <div className="flex-1 justify-center mt-[50px] shadow-lg lg:w-90 lg:mb-8">
-      <input
-        type="text"
-        className="w-[287px] bg-[#003636] text-white p-1 border-[3px] rounded mb-4 text-center"
-        value={name}
-        onChange={(e) => {
-          onEdit(e.target.value);
-        }}
-        onBlur={onSave}
-      />
+      {renderPlaylistHeader()}
       <ul>
-        {tracksToDisplay.map((track) => (
-          <div
-            className="flex justify-center h-7 text-[#003636] text-[1rem] border-b border-gray-300"
-            key={track.id}
-          >
-            <li>
-              {track.name} - {track.artist}
-            </li>
-            <span className="ml-2 text-gray-500">
-              {formatDuration(track.duration_ms)}
-            </span>
-            <button
-              className="text-teal-500 hover:text-teal-600 font-bold pl-2"
-              onClick={() => playTrackSample(track)}
-            >
-              ▷
-            </button>
-            <button
-              className="text-red-600 hover:text-red-500 font-bold pl-2 flex-end"
-              onClick={() => onRemove(track)}
-            >
-              x
-            </button>
-          </div>
-        ))}
+        {!loading
+          ? accessToken
+            ? renderPlaylist()
+            : renderLoginButton()
+          : null}
       </ul>
-      {!loading ? (
-        accessToken ? (
-          <div className="mt-10 text-green-700">
-            {user ? (
-              <>
-                <div className="flex items-center justify-center">
-                  <p className="mr-2">Logged in as {user.display_name}</p>
-                  <img
-                    className="rounded-full"
-                    src={user.images[0]?.url}
-                    alt="User profile"
-                    height={30}
-                    width={30}
-                  />
-                </div>
-                <button
-                  className="font-bold text-white hover:text-[#6c41e9] bg-[#6c41e9] hover:bg-[lightgrey] py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
-                  onClick={savePlaylistToSpotify}
-                >
-                  SAVE PLAYLIST
-                </button>
-                <Playlists
-                  accessToken={accessToken}
-                  playlist={playlist}
-                  onSelectPlaylist={handleSelectPlaylist}
-                />
-              </>
-            ) : (
-              <p>Loading user data...</p>
-            )}
-          </div>
-        ) : (
-          <button
-            className="font-bold text-gray-400 hover:text-white bg-purple-200 hover:bg-[#6c41e9] uppercase py-[.57rem] px-2 mt-10 rounded-[54px] transition 0.25s"
-            onClick={initiateSpotifyLogin}
-          >
-            Login to Spotify
-          </button>
-        )
-      ) : null}
       {error && <p className="text-red-600">{error}</p>}
     </div>
   );
