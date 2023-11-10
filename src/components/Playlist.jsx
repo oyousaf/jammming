@@ -113,17 +113,15 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
         public: false,
       };
 
+      let playlistResponse;
+
       if (playlistId) {
-        const updatePlaylistResponse = await fetch(
+        playlistResponse = await fetch(
           `https://api.spotify.com/v1/users/${user.id}/playlists/${playlistId}`,
           { method: "PUT", headers, body: JSON.stringify(playlistData) }
         );
-        if (!updatePlaylistResponse.ok) {
-          setError("Error updating the playlist.");
-          return;
-        }
       } else {
-        const createPlaylistResponse = await fetch(
+        playlistResponse = await fetch(
           "https://api.spotify.com/v1/me/playlists",
           {
             method: "POST",
@@ -132,13 +130,15 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
           }
         );
 
-        if (createPlaylistResponse.ok) {
-          const { id } = await createPlaylistResponse.json();
+        if (playlistResponse.ok) {
+          const { id } = await playlistResponse.json();
           setPlaylistId(id);
-        } else {
-          setError("Error creating playlist.");
-          return;
         }
+      }
+
+      if (!playlistResponse.ok) {
+        setError("Error creating/updating the playlist.");
+        return;
       }
 
       const uris = playlist.tracks.map((track) => track.uri);
