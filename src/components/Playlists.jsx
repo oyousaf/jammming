@@ -73,6 +73,7 @@ const Playlists = ({ accessToken, onSelectPlaylist }) => {
           name: track.track.name,
           artist: track.track.artists[0].name,
           preview_url: track.track.preview_url,
+          duration_ms: track.track.duration_ms,
         }));
       } else {
         console.error("Error fetching playlist tracks:", response.status);

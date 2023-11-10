@@ -201,6 +201,13 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
     ? selectedPlaylist.tracks || []
     : playlist.tracks || [];
 
+  // Format track duration
+  const formatDuration = (duration_ms) => {
+    const minutes = Math.floor(duration_ms / 60000);
+    const seconds = ((duration_ms % 60000) / 1000).toFixed(0);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
   return (
     <div className="flex-1 justify-center mt-[50px] shadow-lg lg:w-90 lg:mb-8">
       <input
@@ -221,6 +228,9 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
             <li>
               {track.name} - {track.artist}
             </li>
+            <span className="ml-2 text-gray-500">
+              {formatDuration(track.duration_ms)}
+            </span>
             <button
               className="text-teal-500 hover:text-teal-600 font-bold pl-2"
               onClick={() => playTrackSample(track)}
