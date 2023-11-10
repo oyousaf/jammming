@@ -14,7 +14,6 @@ const PlaylistsItem = ({
   return (
     <div
       className="bg-[#003636] p-4 rounded-md mb-4 shadow-md cursor-pointer"
-      key={playlistId}
       onClick={handleClick}
     >
       <p className="text-lg font-medium text-gray-300 hover:text-gray-100">

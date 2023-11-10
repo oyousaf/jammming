@@ -3,7 +3,7 @@ import PlaylistsItem from "./PlaylistsItem";
 
 const Playlists = ({ accessToken, onSelectPlaylist }) => {
   const [playlists, setPlaylists] = useState([]);
-
+  // eslint-disable-next-line
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
 
   const getCurrentUserId = useCallback(async () => {
@@ -51,7 +51,6 @@ const Playlists = ({ accessToken, onSelectPlaylist }) => {
 
   useEffect(() => {
     getUserPlaylists();
-    console.log("Playlists updated:", playlists);
     // eslint-disable-next-line
   }, [getUserPlaylists]);
 
@@ -73,6 +72,7 @@ const Playlists = ({ accessToken, onSelectPlaylist }) => {
           id: track.track.id,
           name: track.track.name,
           artist: track.track.artists[0].name,
+          preview_url: track.track.preview_url,
         }));
       } else {
         console.error("Error fetching playlist tracks:", response.status);
@@ -91,7 +91,6 @@ const Playlists = ({ accessToken, onSelectPlaylist }) => {
     setSelectedPlaylist(selectedPlaylist);
     onSelectPlaylist(selectedPlaylist);
     console.log("Selected Playlist:", selectedPlaylist);
-    console.log("typeof onSelectPlaylist:", typeof onSelectPlaylist);
   };
 
   return (
