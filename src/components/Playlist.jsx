@@ -175,12 +175,10 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   };
 
   const handleSelectPlaylist = (selectedPlaylist) => {
-    console.log("Selected Playlist in Playlist.jsx:", selectedPlaylist);
     setSelectedPlaylist(selectedPlaylist);
   };
 
   const formatDuration = (duration_ms) => {
-    console.log("Duration received:", duration_ms);
     if (typeof duration_ms !== "number" || isNaN(duration_ms)) {
       return "Not Available";
     }
