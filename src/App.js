@@ -47,7 +47,6 @@ const App = () => {
 
         try {
           const response = await axios.request(options);
-          console.log(response.data);
           setSearchResults(response.data);
           setError(null);
         } catch (error) {

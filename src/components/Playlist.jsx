@@ -165,13 +165,11 @@ const Playlist = ({ playlist, name, onEdit, onSave, onRemove }) => {
   };
 
   const playTrackSample = (track) => {
-    console.log("Track object:", track);
     if (track.preview_url) {
       const audio = new Audio(track.preview_url);
       audio.play();
     } else {
       alert("No preview available for this track.");
-      console.log("No preview available for this track.");
     }
   };
 
